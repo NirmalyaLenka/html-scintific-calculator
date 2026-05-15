@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>SciCalc</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0c0f1e;--s1:#111829;--s2:#182035;--s3:#1e2840;--bd:#253060;
+  --acc:#4f8ef7;--cyan:#22d3ee;--pur:#9b7cf8;--grn:#34d399;
+  --red:#f87171;--amb:#fbbf24;--txt:#dde6fc;--mut:#5a6fa0;
+  --btnH:clamp(52px,11vw,68px);--gap:clamp(6px,1.5vw,10px);
+}
+html,body{height:100%;height:100dvh;background:var(--bg);color:var(--txt);font-family:'JetBrains Mono',monospace;overflow:hidden;touch-action:manipulation;}
+body{display:flex;flex-direction:column;height:100dvh;max-width:600px;margin:0 auto;}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:env(safe-area-inset-top,10px) 16px 10px;background:var(--s1);border-bottom:1px solid var(--bd);flex-shrink:0;gap:10px;}
+.logo{font-family:'Orbitron',monospace;font-size:13px;font-weight:600;color:var(--acc);letter-spacing:0.18em;white-space:nowrap;}
+.logo em{color:var(--cyan);font-style:normal;}
+.angle-pills{display:flex;background:var(--s2);border:1px solid var(--bd);border-radius:20px;overflow:hidden;flex-shrink:0;}
+.angle-pills button{background:none;border:none;color:var(--mut);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;padding:5px 12px;cursor:pointer;transition:all 0.18s;letter-spacing:0.08em;}
+.angle-pills button.active{background:var(--acc);color:#fff;}
+.mem-badge{font-size:11px;color:var(--cyan);white-space:nowrap;letter-spacing:0.06em;}
+
+.display{background:var(--s1);padding:12px 20px 14px;flex-shrink:0;position:relative;border-bottom:1px solid var(--bd);}
+.display::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--acc),var(--cyan),var(--pur));}
+.d-hist{font-size:12px;color:var(--mut);text-align:right;min-height:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;}
+.d-expr{font-size:15px;color:var(--acc);text-align:right;min-height:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;opacity:0.9;}
+.d-main{font-size:clamp(36px,9vw,56px);font-weight:300;color:var(--txt);text-align:right;line-height:1;min-height:56px;display:flex;align-items:flex-end;justify-content:flex-end;letter-spacing:-0.02em;word-break:break-all;transition:color 0.15s;}
+.d-main.shrink{font-size:clamp(26px,7vw,38px);}
+.d-main.tiny{font-size:clamp(18px,5vw,26px);}
+.d-main.error{color:var(--red);font-size:clamp(16px,5vw,22px);}
+
+.hist-toggle{display:flex;align-items:center;justify-content:center;padding:6px;background:var(--s2);border-bottom:1px solid var(--bd);cursor:pointer;gap:6px;font-size:11px;color:var(--mut);letter-spacing:0.1em;flex-shrink:0;transition:background 0.15s;}
+.hist-toggle:active{background:var(--s3);}
+.hist-arrow{transition:transform 0.25s;display:inline-block;}
+.hist-arrow.open{transform:rotate(180deg);}
+.hist-drawer{background:var(--s1);border-bottom:1px solid var(--bd);overflow:hidden;max-height:0;transition:max-height 0.3s ease;flex-shrink:0;}
+.hist-drawer.open{max-height:200px;}
+.hist-inner{padding:8px 0;max-height:200px;overflow-y:auto;}
+.hist-inner::-webkit-scrollbar{width:3px;}
+.hist-inner::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px;}
+.hist-item{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;cursor:pointer;border-bottom:1px solid rgba(37,48,96,0.3);transition:background 0.12s;}
+.hist-item:active{background:var(--s3);}
+.hi-expr{font-size:11px;color:var(--mut);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hi-val{font-size:15px;color:var(--acc);font-weight:500;margin-left:12px;white-space:nowrap;}
+.hist-empty{padding:20px;text-align:center;font-size:12px;color:var(--mut);line-height:2;}
+
+.sci-toggle{display:flex;align-items:center;justify-content:space-between;padding:7px 16px;background:var(--s2);border-bottom:1px solid var(--bd);cursor:pointer;font-size:11px;color:var(--mut);letter-spacing:0.1em;flex-shrink:0;gap:8px;}
+.sci-toggle:active{background:var(--s3);}
+.sci-tabs{display:flex;gap:6px;}
+.sci-tab{font-size:11px;padding:3px 10px;border:1px solid var(--bd);border-radius:12px;color:var(--mut);background:none;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all 0.15s;}
+.sci-tab.active{background:var(--pur);border-color:var(--pur);color:#fff;}
+.sci-panel{background:var(--s2);border-bottom:1px solid var(--bd);overflow:hidden;max-height:0;transition:max-height 0.3s ease;flex-shrink:0;}
+.sci-panel.open{max-height:300px;}
+.sci-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--gap);padding:var(--gap);}
+
+.keypad{flex:1;padding:var(--gap);display:grid;grid-template-rows:repeat(5,1fr);gap:var(--gap);overflow:hidden;padding-bottom:calc(var(--gap) + env(safe-area-inset-bottom,0px));}
+.krow{display:grid;gap:var(--gap);}
+.krow-5{grid-template-columns:repeat(5,1fr);}
+.krow-4last{grid-template-columns:2fr 1fr 1fr 1fr;}
+
+button.b{border-radius:12px;border:1px solid var(--bd);font-family:'JetBrains Mono',monospace;cursor:pointer;font-size:clamp(13px,3.5vw,18px);font-weight:400;display:flex;align-items:center;justify-content:center;transition:transform 0.08s,filter 0.08s;min-height:var(--btnH);width:100%;user-select:none;-webkit-user-select:none;}
+button.b:active{transform:scale(0.90);filter:brightness(1.25);}
+button.b.num{background:var(--s3);color:var(--txt);font-size:clamp(16px,4.5vw,22px);}
+button.b.op{background:var(--s2);color:var(--acc);font-size:clamp(16px,5vw,24px);border-color:#2e3d7a;}
+button.b.eq{background:var(--acc);color:#fff;font-size:clamp(20px,6vw,28px);font-weight:300;border-color:var(--acc);}
+button.b.clr{background:rgba(248,113,113,0.1);color:var(--red);border-color:rgba(248,113,113,0.2);font-size:clamp(12px,3vw,15px);font-weight:600;}
+button.b.del{background:var(--s3);color:var(--amb);border-color:#3a3020;font-size:clamp(14px,3.5vw,18px);}
+button.b.fn{background:#0e1728;color:#7ab3ff;font-size:clamp(9px,2.5vw,13px);font-weight:500;letter-spacing:0.03em;border-color:#1a2a50;min-height:42px;}
+button.b.mem{background:rgba(34,211,238,0.07);color:var(--cyan);border-color:rgba(34,211,238,0.2);font-size:clamp(9px,2.5vw,12px);font-weight:600;letter-spacing:0.05em;min-height:42px;}
+button.b.special{background:rgba(155,124,248,0.1);color:var(--pur);border-color:rgba(155,124,248,0.25);font-size:clamp(14px,4vw,18px);font-style:italic;}
+button.b.paren{background:var(--s2);color:var(--cyan);font-size:clamp(14px,4vw,20px);}
+.safe{height:env(safe-area-inset-bottom,0px);flex-shrink:0;background:var(--bg);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Sci<em>Calc</em></div>
+  <div class="angle-pills">
+    <button class="active" id="degBtn" onclick="setAngle('deg')">DEG</button>
+    <button id="radBtn" onclick="setAngle('rad')">RAD</button>
+    <button id="gradBtn" onclick="setAngle('grad')">GRD</button>
+  </div>
+  <div class="mem-badge" id="memBadge"></div>
+</div>
+
+<div class="display">
+  <div class="d-hist" id="dHist">&nbsp;</div>
+  <div class="d-expr" id="dExpr">&nbsp;</div>
+  <div class="d-main" id="dMain">0</div>
+</div>
+
+<div class="hist-toggle" onclick="toggleHist()">
+  <span>HISTORY</span>
+  <span class="hist-arrow" id="histArrow">&#9662;</span>
+</div>
+<div class="hist-drawer" id="histDrawer">
+  <div class="hist-inner" id="histInner">
+    <div class="hist-empty">No calculations yet</div>
+  </div>
+</div>
+
+<div class="sci-toggle" onclick="toggleSci()">
+  <div class="sci-tabs">
+    <button class="sci-tab active" onclick="showPage(0,event)">TRIG</button>
+    <button class="sci-tab" onclick="showPage(1,event)">LOG/POW</button>
+    <button class="sci-tab" onclick="showPage(2,event)">CONST</button>
+    <button class="sci-tab" onclick="showPage(3,event)">MEM</button>
+  </div>
+  <span id="sciArrow">&#9662;</span>
+</div>
+<div class="sci-panel" id="sciPanel">
+  <div class="sci-grid" id="page0">
+    <button class="b fn" onclick="inputFn('sin')">sin</button>
+    <button class="b fn" onclick="inputFn('cos')">cos</button>
+    <button class="b fn" onclick="inputFn('tan')">tan</button>
+    <button class="b fn" onclick="inputFn('asin')">sin&#x207B;&#xB9;</button>
+    <button class="b fn" onclick="inputFn('acos')">cos&#x207B;&#xB9;</button>
+    <button class="b fn" onclick="inputFn('sinh')">sinh</button>
+    <button class="b fn" onclick="inputFn('cosh')">cosh</button>
+    <button class="b fn" onclick="inputFn('tanh')">tanh</button>
+    <button class="b fn" onclick="inputFn('atan')">tan&#x207B;&#xB9;</button>
+    <button class="b fn" onclick="appendRaw('**','&#x02B8;')">x&#x02B8;</button>
+    <button class="b fn" onclick="appendRaw('**2','&#xB2;')">x&#xB2;</button>
+    <button class="b fn" onclick="appendRaw('**3','&#xB3;')">x&#xB3;</button>
+    <button class="b fn" onclick="inputFn('sqrt')">&radic;x</button>
+    <button class="b fn" onclick="inputFn('cbrt')">&#x221B;x</button>
+    <button class="b fn" onclick="inputFn('abs')">&vert;x&vert;</button>
+  </div>
+  <div class="sci-grid" id="page1" style="display:none">
+    <button class="b fn" onclick="inputFn('log')">log</button>
+    <button class="b fn" onclick="inputFn('log2')">log&#x2082;</button>
+    <button class="b fn" onclick="inputFn('ln')">ln</button>
+    <button class="b fn" onclick="inputFn('exp')">e&#x02E3;</button>
+    <button class="b fn" onclick="appendRaw('10**(','10&#x02E3;')">10&#x02E3;</button>
+    <button class="b fn" onclick="inputFn('fact')">n!</button>
+    <button class="b fn" onclick="appendRaw('%','%')">mod %</button>
+    <button class="b paren" onclick="appendRaw('(','(')">( </button>
+    <button class="b paren" onclick="appendRaw(')',')') "> )</button>
+    <button class="b fn" onclick="negate()">&plusmn;</button>
+    <button class="b fn" onclick="appendRaw('Math.round(','rnd(')">rnd</button>
+    <button class="b fn" onclick="appendRaw('Math.floor(','flr(')">flr</button>
+    <button class="b fn" onclick="appendRaw('Math.ceil(','ceil(')">ceil</button>
+    <button class="b fn" onclick="appendRaw('*(10**(','&times;10&#x207F;')">&times;10&#x207F;</button>
+    <button class="b fn" onclick="appendRaw('**0.5','&#x207B;&#xB9;&#x2044;&#xB2;')">x&#x207B;&#xB9;</button>
+  </div>
+  <div class="sci-grid" id="page2" style="display:none">
+    <button class="b special" onclick="insertConst(Math.PI,'&#x03C0;')">&pi;</button>
+    <button class="b special" onclick="insertConst(Math.E,'e')">e</button>
+    <button class="b special" onclick="insertConst(1.6180339887,'&#x03C6;')">&phi;</button>
+    <button class="b fn" onclick="insertConst(Math.SQRT2,'&radic;2')">&radic;2</button>
+    <button class="b fn" onclick="insertConst(Math.LN2,'ln2')">ln2</button>
+    <button class="b fn" onclick="insertConst(299792458,'c')">c</button>
+    <button class="b fn" onclick="insertConst(6.674e-11,'G')">G</button>
+    <button class="b fn" onclick="insertConst(6.022e23,'N&#x2090;')">N&#x2090;</button>
+    <button class="b fn" onclick="insertConst(1.381e-23,'k&#x1D2E;')">k&#x1D2E;</button>
+    <button class="b fn" onclick="insertConst(8.314,'R')">R</button>
+    <button class="b fn" onclick="insertConst(6.626e-34,'h')">h</button>
+    <button class="b fn" onclick="insertConst(1.602e-19,'e&#x207A;')">e&#x207A;</button>
+    <button class="b fn" onclick="insertConst(9.109e-31,'m&#x2091;')">m&#x2091;</button>
+    <button class="b fn" onclick="insertConst(1.673e-27,'m&#x2098;')">m&#x2098;</button>
+    <button class="b fn" onclick="insertConst(5.670e-8,'&#x03C3;')">&sigma;</button>
+  </div>
+  <div class="sci-grid" id="page3" style="display:none">
+    <button class="b mem" onclick="memStore()">MS</button>
+    <button class="b mem" onclick="memRecall()">MR</button>
+    <button class="b mem" onclick="memAdd()">M+</button>
+    <button class="b mem" onclick="memSub()">M&#x2212;</button>
+    <button class="b mem" onclick="memClear()">MC</button>
+    <button class="b fn" id="memDisplay" style="grid-column:span 5;font-size:11px;color:var(--mut);background:none;border-color:transparent;cursor:default;min-height:28px;">Memory: empty</button>
+    <button class="b clr" onclick="clearAll()" style="grid-column:span 2;">CLEAR ALL</button>
+    <button class="b fn" onclick="clearHistory()" style="grid-column:span 3;color:var(--mut);">CLEAR HISTORY</button>
+  </div>
+</div>
+
+<div class="keypad">
+  <div class="krow krow-5">
+    <button class="b special" onclick="insertConst(Math.PI,'&#x03C0;')">&pi;</button>
+    <button class="b special" onclick="insertConst(Math.E,'e')">e</button>
+    <button class="b paren" onclick="appendRaw('(','(')">( )</button>
+    <button class="b paren" onclick="appendRaw(')',')') ">)</button>
+    <button class="b clr" onclick="clearAll()">AC</button>
+  </div>
+  <div class="krow krow-5">
+    <button class="b num" onclick="appendDigit('7')">7</button>
+    <button class="b num" onclick="appendDigit('8')">8</button>
+    <button class="b num" onclick="appendDigit('9')">9</button>
+    <button class="b op" onclick="appendOp('/','&#247;')">&divide;</button>
+    <button class="b del" onclick="del()">&#9003;</button>
+  </div>
+  <div class="krow krow-5">
+    <button class="b num" onclick="appendDigit('4')">4</button>
+    <button class="b num" onclick="appendDigit('5')">5</button>
+    <button class="b num" onclick="appendDigit('6')">6</button>
+    <button class="b op" onclick="appendOp('*','&times;')">&times;</button>
+    <button class="b fn" onclick="appendRaw('%','%')" style="min-height:var(--btnH);">%</button>
+  </div>
+  <div class="krow krow-5">
+    <button class="b num" onclick="appendDigit('1')">1</button>
+    <button class="b num" onclick="appendDigit('2')">2</button>
+    <button class="b num" onclick="appendDigit('3')">3</button>
+    <button class="b op" onclick="appendOp('-','&minus;')">&minus;</button>
+    <button class="b fn" onclick="negate()" style="min-height:var(--btnH);">&plusmn;</button>
+  </div>
+  <div class="krow krow-4last">
+    <button class="b num" onclick="appendDigit('0')">0</button>
+    <button class="b num" onclick="appendRaw('.','.')">.</button>
+    <button class="b op" onclick="appendOp('+','+')">+</button>
+    <button class="b eq" onclick="evaluate()">=</button>
+  </div>
+</div>
+
+<div class="safe"></div>
+
+<script>
+let internal='',display='',angleMode='deg',mem=0,history=[],evaled=false;
+let sciOpen=false,histOpen=false,curPage=0;
+
+function setAngle(m){
+  angleMode=m;
+  ['deg','rad','grad'].forEach(x=>document.getElementById(x+'Btn').classList.toggle('active',x===m));
+}
+
+function toggleHist(){
+  histOpen=!histOpen;
+  document.getElementById('histDrawer').classList.toggle('open',histOpen);
+  document.getElementById('histArrow').classList.toggle('open',histOpen);
+}
+
+function toggleSci(){
+  sciOpen=!sciOpen;
+  document.getElementById('sciPanel').classList.toggle('open',sciOpen);
+  document.getElementById('sciArrow').innerHTML=sciOpen?'&#9652;':'&#9662;';
+}
+
+function showPage(i,e){
+  if(e)e.stopPropagation();
+  if(!sciOpen){sciOpen=true;document.getElementById('sciPanel').classList.add('open');document.getElementById('sciArrow').innerHTML='&#9652;';}
+  curPage=i;
+  for(let j=0;j<4;j++){const p=document.getElementById('page'+j);if(p)p.style.display=j===i?'grid':'none';}
+  document.querySelectorAll('.sci-tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+}
+
+function fmtNum(n){
+  if(!isFinite(n))return n>0?'+∞':isNaN(n)?'NaN':'−∞';
+  const abs=Math.abs(n);
+  if(abs!==0&&(abs>=1e13||abs<1e-9))return n.toExponential(6);
+  return parseFloat(n.toPrecision(11)).toString();
+}
+
+function render(){
+  const el=document.getElementById('dMain');
+  const txt=display||'0';
+  el.className='d-main'+(txt.length>20?' tiny':txt.length>13?' shrink':'');
+  el.textContent=txt;
+  document.getElementById('dExpr').textContent=display||'\u00a0';
+}
+
+function appendDigit(d){
+  if(evaled){internal='';display='';evaled=false;}
+  internal+=d;display+=d;render();
+}
+
+function appendOp(op,disp){
+  evaled=false;
+  if(internal&&['+','-','*','/'].includes(internal.slice(-1))){
+    internal=internal.slice(0,-1);display=display.slice(0,-1);
+  }
+  internal+=op;display+=disp;render();
+}
+
+function appendRaw(v,d){
+  if(evaled&&v!=='('&&!v.startsWith('**')){internal='';display='';evaled=false;}
+  internal+=v;display+=d;render();
+}
+
+function inputFn(fn){
+  if(evaled){internal='';display='';evaled=false;}
+  const im={sin:'TRIG_sin(',cos:'TRIG_cos(',tan:'TRIG_tan(',asin:'ATRIG_asin(',acos:'ATRIG_acos(',atan:'ATRIG_atan(',sinh:'HTRIG_sinh(',cosh:'HTRIG_cosh(',tanh:'HTRIG_tanh(',asinh:'Math.asinh(',acosh:'Math.acosh(',atanh:'Math.atanh(',log:'Math.log10(',log2:'Math.log2(',ln:'Math.log(',exp:'Math.exp(',sqrt:'Math.sqrt(',cbrt:'Math.cbrt(',abs:'Math.abs(',fact:'FACT('};
+  const dm={sin:'sin(',cos:'cos(',tan:'tan(',asin:'sin⁻¹(',acos:'cos⁻¹(',atan:'tan⁻¹(',sinh:'sinh(',cosh:'cosh(',tanh:'tanh(',asinh:'sinh⁻¹(',acosh:'cosh⁻¹(',atanh:'tanh⁻¹(',log:'log(',log2:'log₂(',ln:'ln(',exp:'e^(',sqrt:'√(',cbrt:'∛(',abs:'|',fact:'n!('};
+  internal+=im[fn];display+=dm[fn];render();
+}
+
+function insertConst(val,sym){
+  if(evaled){internal='';display='';evaled=false;}
+  internal+=val;display+=sym;render();
+}
+
+function negate(){
+  if(internal){internal='(-('+internal+'))';display='-('+display+')';render();}
+}
+
+function del(){
+  if(!internal)return;
+  internal=internal.slice(0,-1);display=display.slice(0,-1);render();
+}
+
+function clearAll(){
+  internal='';display='';evaled=false;
+  document.getElementById('dHist').innerHTML='&nbsp;';
+  document.getElementById('dExpr').innerHTML='&nbsp;';
+  const el=document.getElementById('dMain');el.className='d-main';el.textContent='0';
+}
+
+function calcCurrent(){
+  try{return Function('"use strict";const FACTORIAL='+factorial.toString()+';return('+prepareCode(internal)+')')();}catch{return 0;}
+}
+
+function memStore(){mem=calcCurrent();updateMem();}
+function memRecall(){if(evaled){internal='';display='';evaled=false;}internal+=mem;display+=fmtNum(mem);render();}
+function memAdd(){mem+=calcCurrent();updateMem();}
+function memSub(){mem-=calcCurrent();updateMem();}
+function memClear(){mem=0;updateMem();}
+
+function updateMem(){
+  const b=document.getElementById('memBadge');
+  const d=document.getElementById('memDisplay');
+  if(mem!==0){b.textContent='M='+fmtNum(mem);if(d)d.textContent='Memory: '+fmtNum(mem);}
+  else{b.textContent='';if(d)d.textContent='Memory: empty';}
+}
+
+function factorial(n){
+  n=Math.round(n);if(n<0)return NaN;if(n>170)return Infinity;
+  let r=1;for(let i=2;i<=n;i++)r*=i;return r;
+}
+
+function prepareCode(code){
+  const deg=angleMode==='deg'?180:angleMode==='grad'?200:1;
+  const aDeg=angleMode==='deg'?'180/Math.PI':angleMode==='grad'?'200/Math.PI':'1';
+  code=code.replace(/TRIG_sin\(([^)]*)\)/g,(_,a)=>`Math.sin(${a.trim()?`(${a})*Math.PI/${deg}`:'0'})`);
+  code=code.replace(/TRIG_cos\(([^)]*)\)/g,(_,a)=>`Math.cos(${a.trim()?`(${a})*Math.PI/${deg}`:'0'})`);
+  code=code.replace(/TRIG_tan\(([^)]*)\)/g,(_,a)=>`Math.tan(${a.trim()?`(${a})*Math.PI/${deg}`:'0'})`);
+  code=code.replace(/ATRIG_asin\(([^)]*)\)/g,(_,a)=>`(Math.asin(${a})*${aDeg})`);
+  code=code.replace(/ATRIG_acos\(([^)]*)\)/g,(_,a)=>`(Math.acos(${a})*${aDeg})`);
+  code=code.replace(/ATRIG_atan\(([^)]*)\)/g,(_,a)=>`(Math.atan(${a})*${aDeg})`);
+  code=code.replace(/HTRIG_sinh\(([^)]*)\)/g,(_,a)=>`Math.sinh(${a})`);
+  code=code.replace(/HTRIG_cosh\(([^)]*)\)/g,(_,a)=>`Math.cosh(${a})`);
+  code=code.replace(/HTRIG_tanh\(([^)]*)\)/g,(_,a)=>`Math.tanh(${a})`);
+  code=code.replace(/FACT\(([^)]*)\)/g,(_,a)=>`FACTORIAL(${a})`);
+  return code;
+}
+
+function evaluate(){
+  if(!internal)return;
+  const exprDisp=display;
+  document.getElementById('dHist').textContent=exprDisp+' =';
+  try{
+    const result=Function('"use strict";const FACTORIAL='+factorial.toString()+';return('+prepareCode(internal)+')')();
+    let disp=fmtNum(result);
+    const el=document.getElementById('dMain');
+    el.className='d-main'+(disp.length>20?' tiny':disp.length>13?' shrink':'');
+    el.textContent=disp;
+    document.getElementById('dExpr').innerHTML='&nbsp;';
+    addHistory(exprDisp,disp);
+    internal=String(result);display=disp;evaled=true;
+  }catch(e){
+    const el=document.getElementById('dMain');
+    el.className='d-main error';el.textContent='Syntax Error';
+  }
+}
+
+function addHistory(expr,val){
+  history.unshift({expr,val});
+  if(history.length>30)history.pop();
+  renderHistory();
+}
+function clearHistory(){history=[];renderHistory();}
+function renderHistory(){
+  const el=document.getElementById('histInner');
+  if(!history.length){el.innerHTML='<div class="hist-empty">No calculations yet</div>';return;}
+  el.innerHTML=history.map(h=>`<div class="hist-item" onclick="recallHist('${h.val}')"><span class="hi-expr">${h.expr}</span><span class="hi-val">${h.val}</span></div>`).join('');
+}
+function recallHist(val){
+  internal=val;display=val;evaled=true;render();
+  if(histOpen)toggleHist();
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey)return;
+  const k=e.key;
+  if('0123456789'.includes(k))appendDigit(k);
+  else if(k==='+')appendOp('+','+');
+  else if(k==='-')appendOp('-','−');
+  else if(k==='*')appendOp('*','×');
+  else if(k==='/'){e.preventDefault();appendOp('/','÷');}
+  else if(k==='(')appendRaw('(','(');
+  else if(k===')')appendRaw(')',')');;
+  else if(k==='.')appendRaw('.','.');
+  else if(k==='%')appendRaw('%','%');
+  else if(k==='Enter'||k==='=')evaluate();
+  else if(k==='Backspace')del();
+  else if(k==='Escape')clearAll();
+});
+</script>
+</body>
+</html>
