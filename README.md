@@ -54,7 +54,7 @@ No conventional `LICENSE` file is present in the tracked root tree. Confirm the 
 
 ## Maintenance & Audit
 
-- **Audit date:** 11 November 2026
+- **Audit date:** 18 November 2026
 - **Documentation status:** File layout, launch instructions, and PWA claims reviewed.
 - **Verification status:** Documentation and source inspection only; no browser test or automated test run is claimed.
 - **Scope:** Application code and runtime behavior were not changed by this documentation update.
