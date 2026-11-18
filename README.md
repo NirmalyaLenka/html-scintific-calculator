@@ -1,91 +1,60 @@
-# html-scintific-calculator
 # SciCalc — Mobile Scientific Calculator
- 
-A fully featured, mobile-first scientific calculator built with vanilla HTML, CSS, and JavaScript. No frameworks, no dependencies, no build step.
- 
-![SciCalc Preview](https://img.shields.io/badge/version-1.0.0-4f8ef7?style=flat-square) ![License](https://img.shields.io/badge/license-MIT-22d3ee?style=flat-square) ![PWA](https://img.shields.io/badge/PWA-ready-34d399?style=flat-square)
- 
-## Features
- 
-- **Full scientific function set** — trig, inverse trig, hyperbolic, log, exp, powers, roots, factorial, absolute value
-- **Physical constants** — π, e, φ, speed of light, Planck, Avogadro, Boltzmann and more
-- **Memory system** — MS / MR / M+ / M− / MC
-- **Calculation history** — last 30 results, tap to recall
-- **Angle modes** — DEG / RAD / GRAD
-- **Mobile-first design** — large touch targets, safe-area insets, PWA installable
-- **Keyboard support** — full keyboard input on desktop
-- **Zero dependencies** — pure HTML/CSS/JS, works offline
-## Project Structure
- 
-```
-scicalc/
-├── index.html          # App shell & markup
-├── css/
-│   └── style.css       # All styles (variables, layout, buttons)
-├── js/
-│   ├── calculator.js   # Core calculation engine & state
-│   ├── display.js      # Display rendering & formatting
-│   ├── history.js      # History management
-│   ├── memory.js       # Memory (MS/MR/M+/M−/MC)
-│   └── ui.js           # UI interactions (panels, keyboard)
-├── manifest.json       # PWA manifest
-├── .gitignore
-└── README.md
-```
- 
-## Getting Started
- 
+
+A mobile-first scientific calculator prototype built with HTML, CSS, and JavaScript. The repository currently contains a self-contained HTML page plus two separate JavaScript modules; those modules are not imported by the self-contained page.
+
+## Features in the standalone page
+
+- Trigonometric, inverse-trigonometric, and hyperbolic functions
+- Logarithms, exponentials, powers, roots, factorial, and absolute value
+- Mathematical and physical constants
+- DEG/RAD/GRAD angle modes
+- Memory controls and a calculation history
+- Touch-oriented layout and keyboard input
+
+## Repository contents
+
+| Path | Purpose / status |
+|---|---|
+| `scientific-calculator for mobilr browser.html` | Main self-contained browser app. Its CSS and JavaScript are embedded in the file. Keep this exact filename when opening it from the current checkout. |
+| `calculator.js` | Separate ES module for expression state, functions, constants, and evaluation. The standalone HTML does not import it. |
+| `display.js` | Separate ES module for DOM display rendering. The standalone HTML does not import it. |
+| `manifest.json` | Manifest draft. It references `icons/icon-192.png` and `icons/icon-512.png`, which are not present in the tracked root tree. |
+| `gitignore (4)` | Text file containing ignore patterns, but Git does not treat this suffixed filename as the active `.gitignore`. |
+| `README.md` | Project documentation. |
+
+## Run locally
+
+### Option 1: open the standalone page
+
+Open `scientific-calculator for mobilr browser.html` directly in a modern browser. It does not require Node.js, a package install, or a build step.
+
+### Option 2: serve the repository locally
+
+From the repository root, run:
+
 ```bash
-git clone https://github.com/yourusername/scicalc.git
-cd scicalc
-# Open index.html in any browser — no build step needed
-open index.html
+python -m http.server 8000
 ```
- 
-Or serve locally:
- 
-```bash
-npx serve .
-# Visit http://localhost:3000
-```
- 
-## PWA Installation
- 
-On mobile, tap **Share → Add to Home Screen** (iOS) or the install prompt (Android/Chrome) to install as a native-like app.
- 
-## Keyboard Shortcuts
- 
-| Key | Action |
-|-----|--------|
-| `0–9`, `.` | Digit / decimal |
-| `+` `-` `*` `/` | Operators |
-| `(` `)` | Parentheses |
-| `%` | Modulo / percent |
-| `Enter` or `=` | Evaluate |
-| `Backspace` | Delete last character |
-| `Escape` | Clear all |
- 
+
+Then open `http://localhost:8000/scientific-calculator%20for%20mobilr%20browser.html` in your browser. Stop the server with `Ctrl+C` when finished.
+
+## PWA and offline status
+
+Do not treat the current checkout as a complete installable PWA. The standalone HTML does not link `manifest.json`, the manifest's icon files are absent, and no service worker is checked in. The calculator logic is embedded locally, but the page requests fonts from Google Fonts, so the intended typography may not load without an internet connection.
+
+## Implementation notes and limitations
+
+- The standalone page and the separate `calculator.js` / `display.js` modules are not wired together in the current tree; edits to the modules do not automatically change the standalone page.
+- The JavaScript evaluates internally generated expressions using `Function()`. This is not a hardened expression parser; do not adapt it to execute arbitrary expressions from untrusted sources without redesigning the evaluator.
+- No automated test suite or browser compatibility matrix is included. Calculations and installation behavior were not tested as part of this documentation review.
+
 ## License
- 
-MIT © 2025
 
-
----
-
-## Skills & technologies
-
-`JavaScript` · `HTML/CSS`
-
-
-## How it works
-
-Start with the main source files listed in the repository structure. Review configuration and dependencies before building or running the code.
-
+No conventional `LICENSE` file is present in the tracked root tree. Confirm the intended license before redistributing the project.
 
 ## Maintenance & Audit
 
 - **Audit date:** 11 November 2026
-- **Documentation status:** README reviewed and audit record added on this date.
-- **Scope and evidence:** This is a documentation-level maintenance pass. It does not establish that source code compiles, dependencies are current, security has been tested, or hardware/runtime behavior has been verified.
-- **Code and tests:** No new functional code changes or test results are claimed by this README update. Run project-specific build, test, and hardware/runtime checks before relying on the project.
-- **Maintenance baseline:** Documentation status recorded through 11 November 2026; revisit setup instructions, dependencies, known limitations, and tests when the project changes.
+- **Documentation status:** File layout, launch instructions, and PWA claims reviewed.
+- **Verification status:** Documentation and source inspection only; no browser test or automated test run is claimed.
+- **Scope:** Application code and runtime behavior were not changed by this documentation update.
