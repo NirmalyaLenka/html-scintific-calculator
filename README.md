@@ -58,3 +58,9 @@ No conventional `LICENSE` file is present in the tracked root tree. Confirm the 
 - **Documentation status:** File layout, launch instructions, and PWA claims reviewed.
 - **Verification status:** Documentation and source inspection only; no browser test or automated test run is claimed.
 - **Scope:** Application code and runtime behavior were not changed by this documentation update.
+
+## Contact
+
+Maintained up to 25 November 2026.
+
+If you encounter any problems, please contact [carmodbhai@gmail.com](mailto:carmodbhai@gmail.com).
